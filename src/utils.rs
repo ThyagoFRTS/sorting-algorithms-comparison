@@ -64,21 +64,24 @@ pub fn execute_instance(method: &str,n: usize,case: &str){
         .expect("Failed to open the file");
 
                         
-    let mut csv_writer = WriterBuilder::new()
+    let csv_writer = WriterBuilder::new()
         .has_headers(false)
         .from_writer(file);
 
+    let date = get_current_date();
+
     let mut arr = get_vector_from(case, n);
 
-    println!("Alg: {:?} n: {:?} case: {:?} status: started", method, n, case);
+    println!("[{:?}] alg: {:?} n: {:?} case: {:?} status: started", date, method, n, case);
     let start_time = Instant::now();
     execute(&method, &mut arr);
     let time = start_time.elapsed().as_secs();
-    println!("Alg: {:?} n: {:?} case: {:?} status: finished", method, n, case);
+
+    let date = get_current_date();
+    println!("[{:?}] alg: {:?} n: {:?} case: {:?} status: finished", date, method, n, case);
 
     let memory_usage = PEAK_ALLOC.peak_usage_as_mb() as i32;
-
-    let line = vec![get_current_date(),method.to_string(),n.to_string(), case.to_string(), time.to_string(), memory_usage.to_string()];
+    let line = vec![date,method.to_string(),n.to_string(), case.to_string(), time.to_string(), memory_usage.to_string()];
 
     write_on_csv(line, csv_writer);
 }
