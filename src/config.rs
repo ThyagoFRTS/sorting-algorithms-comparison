@@ -1,33 +1,35 @@
 //pub let vector_sizes = [100, 1000, 10000, 100000, 1000000, 10000000];
 //pub let algorithms = [100, 1000, 10000, 100000, 1000000, 10000000];
 
-pub struct Config {
+pub struct Config<'a>{
     sizes: Vec<usize>,
-    methods: Vec<String>,
-    cases: Vec<String>,
+    methods: Vec<&'a str>,
+    cases: Vec<&'a str>,
 }
 
-impl Config {
+impl Config<'static> {
     pub fn new() -> Self {
         Self {
             //sizes: vec![100, 1000, 10000, 100000, 1000000, 10000000],
-            sizes: vec![10000000, 1000000, 100000, 10000, 1000, 100],
-            methods: vec!["bubblesort".to_string(), "quicksort".to_string(), "selectionsort".to_string()],
-            cases: vec!["pior".to_string(), "medio".to_string(), "melhor".to_string()],
+            //sizes: vec![10000000, 1000000, 100000, 10000, 1000, 100],
+            sizes: vec![ 10000, 1000, 100],
+            methods: vec!["bubblesort", "quicksort", "selectionsort"],
+            //cases: vec!["pior".to_string(), "medio".to_string(), "melhor".to_string()],
+            cases: vec![ "medio", "melhor"],
         }
     }
 
 
 
-    pub fn sizes(&self) -> &[usize] {
-        self.sizes.as_ref()
+    pub fn sizes(&self) -> Vec<usize> {
+        self.sizes.clone()
     }
 
-    pub fn methods(&self) -> Vec<String> {
+    pub fn methods(&self) -> Vec<&str> {
         self.methods.clone()
     }
 
-    pub fn cases(&self) -> &[String] {
-        self.cases.as_ref()
+    pub fn cases(&self) -> Vec<&str>{
+        self.cases.clone()
     }
 }

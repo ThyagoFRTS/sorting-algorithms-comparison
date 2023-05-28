@@ -1,5 +1,15 @@
+use std::fs::File;
+use csv::{Writer, WriterBuilder};
+use std::time::Instant;
 use rand::Rng;
 use chrono::prelude::*;
+use std::fs::OpenOptions;
+
+use peak_alloc::PeakAlloc;
+
+use crate::{sort_methods::execute, PEAK_ALLOC};
+
+
 
 pub fn ascending_vector(n: usize) -> Vec<i32> {
     let mut vector: Vec<i32> = Vec::with_capacity(n);
@@ -38,4 +48,37 @@ pub fn get_vector_from(case: &str, n: usize) -> Vec<i32> {
         "melhor" => return ascending_vector(n),
         _ => return vec![],
     }
+}
+
+pub fn write_on_csv(line: Vec<String>, mut csv_writer: Writer<File>) {      
+    csv_writer.write_record(&line).expect("Failed to write record to CSV");
+    csv_writer.flush().expect("Failed to flush CSV writer");
+}
+
+pub fn execute_instance(method: &str,n: usize,case: &str){
+    let file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .append(true)
+        .open("output.csv")
+        .expect("Failed to open the file");
+
+                        
+    let mut csv_writer = WriterBuilder::new()
+        .has_headers(false)
+        .from_writer(file);
+
+    let mut arr = get_vector_from(case, n);
+
+    println!("Alg: {:?} n: {:?} case: {:?} status: started", method, n, case);
+    let start_time = Instant::now();
+    execute(&method, &mut arr);
+    let time = start_time.elapsed().as_secs();
+    println!("Alg: {:?} n: {:?} case: {:?} status: finished", method, n, case);
+
+    let memory_usage = PEAK_ALLOC.peak_usage_as_mb() as i32;
+
+    let line = vec![get_current_date(),method.to_string(),n.to_string(), case.to_string(), time.to_string(), memory_usage.to_string()];
+
+    write_on_csv(line, csv_writer);
 }

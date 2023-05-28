@@ -4,14 +4,14 @@ pub mod utils;
 pub mod cmd;
 
 use std::time::Instant;
-use std::io::Write;
-use std::fs::File;
+use std::thread;
+use crossbeam::scope;
 use csv::{Writer, WriterBuilder};
 use std::fs::OpenOptions;
 
 use peak_alloc::PeakAlloc;
 
-use crate::{config::Config, sort_methods::execute, utils::{get_current_date, get_vector_from}, cmd::clear_console};
+use crate::{config::Config, sort_methods::execute, utils::{get_current_date, get_vector_from, write_on_csv, execute_instance}, cmd::clear_console};
 
 #[global_allocator]
 static PEAK_ALLOC: PeakAlloc = PeakAlloc;
@@ -19,11 +19,13 @@ static PEAK_ALLOC: PeakAlloc = PeakAlloc;
 
 fn main() {
 
-    let conf = Config::new();
+    let sizes = vec![100000, 10000, 1000, 100];
+    let methods = vec!["bubblesort", "selectionsort", "quicksort"];
+    let cases = vec!["pior", "medio", "melhor"];
     
     let file_path = "output.csv";
 
-    
+    /*
     let file = OpenOptions::new()
         .write(true)
         .create(true)
@@ -35,59 +37,48 @@ fn main() {
     let mut csv_writer = WriterBuilder::new()
         .has_headers(false)
         .from_writer(file);
-
+     */
     
     
-    for n in conf.sizes().into_iter() {
-        clear_console();
+    for n in sizes {
+        //clear_console();
         println!("Valor de N: {:?}",n);
-        for case in conf.cases().into_iter() {
-            let mut memory = 0;
-            let mut time = 0;
-            println!("Caso: {:?}",case);
+        
+        for method in methods.clone() {
 
-            for method in conf.methods().into_iter() {
-                println!("Algoritmo de N: {:?}",method);
-                if case == "medio" {
-                    for i in 0..5 {
-                        println!("Iteracao: {:?}",i);
-                        let mut arr = get_vector_from(case, n.clone());
-
-                        let start_time = Instant::now();
-                        execute(&method, &mut arr);
-                        let end_time = Instant::now();
-    
-                        let execution_time = end_time.duration_since(start_time);
-                        time += execution_time.as_secs();
-                        memory += PEAK_ALLOC.peak_usage_as_mb() as i32;
-                    }
-
-                    time = time / 5;
-                    memory = memory / 5;
-
-                    let line = vec![get_current_date(),method,n.to_string(), case.to_string(), time.to_string(), memory.to_string()];
+            for case in cases.clone() {
+                
+                
+                let thread_handle = thread::spawn(move || {
                     
-                    csv_writer.write_record(&line).expect("Failed to write record to CSV");
-                    csv_writer.flush().expect("Failed to flush CSV writer");
-                    
-                } else {
-                    let mut arr = get_vector_from(case, n.clone());
 
+                    //for case in ["pior", "medio", "melhor"] {
+
+                       execute_instance(method, n, case);
+                    //}
+                    /*
+                    let mut arr = get_vector_from(case, n);
+                    
+                    println!("Alg: {:?} n: {:?} case: {:?} status: started", method, n, case);
                     let start_time = Instant::now();
                     execute(&method, &mut arr);
-                    let end_time = Instant::now();
+                    let time = start_time.elapsed().as_secs();
+                    println!("Alg: {:?} n: {:?} case: {:?} status: finished", method, n, case);
+                    
+                    let memory_usage = PEAK_ALLOC.peak_usage_as_mb() as i32;;
+                    
+                    let line = vec![get_current_date(),method.to_string(),n.to_string(), case.to_string(), time.to_string(), memory_usage.to_string()];
+                    
+                    write_on_csv(line, csv_writer);
+                    */
+                });
 
-                    let execution_time = end_time.duration_since(start_time);
-                    time += execution_time.as_secs();
-                    memory += PEAK_ALLOC.peak_usage_as_mb() as i32;
-
-                    let line = vec![get_current_date(),method,n.to_string(), case.to_string(), time.to_string(), memory.to_string()];
-                    csv_writer.write_record(&line).expect("Failed to write record to CSV");
-                    csv_writer.flush().expect("Failed to flush CSV writer");
-                }
+                thread_handle.join().expect("Erro ao aguardar a thread");
+                
             }
-
+            
         }
+        
 
     }
     

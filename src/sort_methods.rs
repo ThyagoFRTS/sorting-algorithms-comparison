@@ -56,6 +56,6 @@ pub fn execute<T: Ord>(method: &str, arr: &mut [T]) {
         "bubblesort" => bubble_sort(arr),
         "selectionsort" => selection_sort(arr),
         "quicksort" => quicksort(arr),
-        _ => println!("Opção inválida. Tente novamente."),
+        _ => panic!("Opção inválida. Tente novamente."),
     }
 }
