@@ -77,8 +77,8 @@ pub fn execute_instance(method: &str,n: usize,case: &str){
     execute(&method, &mut arr);
     let time = start_time.elapsed().as_secs();
 
-    let date = get_current_date();
-    println!("[{:?}] alg: {:?} n: {:?} case: {:?} status: finished", date, method, n, case);
+    let final_date = get_current_date();
+    println!("[{:?}] alg: {:?} n: {:?} case: {:?} status: finished", final_date, method, n, case);
 
     let memory_usage = PEAK_ALLOC.peak_usage_as_mb() as i32;
     let line = vec![date,method.to_string(),n.to_string(), case.to_string(), time.to_string(), memory_usage.to_string()];
